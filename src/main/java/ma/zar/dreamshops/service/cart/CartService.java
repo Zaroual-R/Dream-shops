@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @RequiredArgsConstructor
-public class CartService implements ICarteService{
+public class CartService implements ICarteService {
     private final CarteRepository carteRepository;
     private final CartItemRepository cartItemRepository;
     private final AtomicLong cartIdGenerator = new AtomicLong(0);
@@ -31,10 +31,10 @@ public class CartService implements ICarteService{
     @Transactional
     @Override
     public void clearCart(Long id) throws ResourceNotFoundException {
-       Cart cart = getCart(id);
-       cartItemRepository.deleteAllByCartId(Math.toIntExact(id));
-       cart.getItems().clear();
-       carteRepository.deleteById(Math.toIntExact(id));
+        Cart cart = getCart(id);
+        cartItemRepository.deleteAllByCartId(Math.toIntExact(id));
+        cart.getItems().clear();
+        carteRepository.deleteById(Math.toIntExact(id));
     }
 
     @Override
@@ -51,4 +51,10 @@ public class CartService implements ICarteService{
         return carteRepository.save(newCart).getId();
 
     }
+
+    @Override
+    public Cart getCartByUserId(Long userId) {
+        return carteRepository.findByUserId(userId);
+    }
+
 }

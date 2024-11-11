@@ -11,4 +11,6 @@ public interface ICarteService {
     BigDecimal getTotalPrice(Long id) throws ResourceNotFoundException;
 
     Long initializeNewCart();
+
+    Cart getCartByUserId(Long userId);
 }
