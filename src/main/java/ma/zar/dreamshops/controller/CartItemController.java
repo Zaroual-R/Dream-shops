@@ -2,35 +2,37 @@ package ma.zar.dreamshops.controller;
 
 import lombok.RequiredArgsConstructor;
 import ma.zar.dreamshops.exceptions.ResourceNotFoundException;
-import ma.zar.dreamshops.repository.CarteRepository;
+import ma.zar.dreamshops.model.Cart;
+import ma.zar.dreamshops.model.User;
 import ma.zar.dreamshops.responce.ApiResponce;
 import ma.zar.dreamshops.service.cart.ICartItemService;
-import ma.zar.dreamshops.service.cart.ICarteService;
+import ma.zar.dreamshops.service.cart.ICartService;
+import ma.zar.dreamshops.service.user.IUserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
-@RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/cartItems")
+@RestController
+@RequestMapping("${api.prefix}/cartItems")
 public class CartItemController {
     private final ICartItemService cartItemService;
-    private final ICarteService cartService;
-    private final CarteRepository carteRepository;
+    private final ICartService cartService;
+    private final IUserService userService;
 
 
     @PostMapping("/item/add")
-    public ResponseEntity<ApiResponce> addItemToCart(@RequestParam(required = false) Long cartId,
+    public ResponseEntity<ApiResponce> addItemToCart(
                                                      @RequestParam Long productId,
                                                      @RequestParam Integer quantity) {
         try {
-            if (cartId == null) {
-                cartId= cartService.initializeNewCart();
-            }
-            cartItemService.addItemToCart(cartId, productId, quantity);
+                User user=userService.getUserById(1L);
+                Cart cart= cartService.initializeNewCart(user);
+
+            cartItemService.addItemToCart(cart.getId(), productId, quantity);
             return ResponseEntity.ok(new ApiResponce("Add Item Success", null));
-        } catch (ResourceNotFoundException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponce(e.getMessage(), null));
         }
     }
@@ -52,7 +54,7 @@ public class CartItemController {
         try {
             cartItemService.updateItemQuantity(cartId, itemId, quantity);
             return ResponseEntity.ok(new ApiResponce("Update Item Success", null));
-        } catch (ResourceNotFoundException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponce(e.getMessage(), null));
         }
 

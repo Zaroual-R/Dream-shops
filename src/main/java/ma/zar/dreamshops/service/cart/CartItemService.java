@@ -8,18 +8,19 @@ import ma.zar.dreamshops.model.Product;
 import ma.zar.dreamshops.repository.CartItemRepository;
 import ma.zar.dreamshops.repository.CarteRepository;
 import ma.zar.dreamshops.service.product.IProductService;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
 @Service
 @RequiredArgsConstructor
-public class CartItemService implements ICartItemService {
+public class CartItemService  implements ICartItemService{
     private final CartItemRepository cartItemRepository;
+    private final CarteRepository cartRepository;
     private final IProductService productService;
-    private final ICarteService carteService;
-    private final CarteRepository carteRepository;
-
+    private final ICartService cartService;
+    private final ModelMapper modelMapper;
 
     @Override
     public void addItemToCart(Long cartId, Long productId, int quantity) throws ResourceNotFoundException {
@@ -28,7 +29,7 @@ public class CartItemService implements ICartItemService {
         //3. Check if the product already in the cart
         //4. If Yes, then increase the quantity with the requested quantity
         //5. If No, then initiate a new CartItem entry.
-        Cart cart = carteService.getCart(cartId);
+        Cart cart = cartService.getCart(cartId);
         Product product = productService.getProductById(productId);
         CartItem cartItem = cart.getItems()
                 .stream()
@@ -46,43 +47,44 @@ public class CartItemService implements ICartItemService {
         cartItem.setTotalPrice();
         cart.addItem(cartItem);
         cartItemRepository.save(cartItem);
-        carteRepository.save(cart);
+        cartRepository.save(cart);
     }
 
     @Override
     public void removeItemFromCart(Long cartId, Long productId) throws ResourceNotFoundException {
-        Cart cart=carteService.getCart(cartId);
-        CartItem cartItemToRemove=cart.getItems().stream()
-                .filter(item ->item.getProduct().getProductId().equals(productId))
-                .findFirst().orElse(null);
-        cart.removeItem(cartItemToRemove);
-        carteRepository.save(cart);
+        Cart cart = cartService.getCart(cartId);
+        CartItem itemToRemove = getCartItem(cartId, productId);
+        cart.removeItem(itemToRemove);
+        cartRepository.save(cart);
     }
 
     @Override
     public void updateItemQuantity(Long cartId, Long productId, int quantity) throws ResourceNotFoundException {
-        Cart cart=carteService.getCart(cartId);
-        cart.getItems().stream()
-                .filter(item ->item.getProduct().getProductId().equals(productId))
+        Cart cart = cartService.getCart(cartId);
+        cart.getItems()
+                .stream()
+                .filter(item -> item.getProduct().getProductId().equals(productId))
                 .findFirst()
-                .ifPresent(item ->{
+                .ifPresent(item -> {
                     item.setQuantity(quantity);
                     item.setUnitPrice(item.getProduct().getPrice());
                     item.setTotalPrice();
                 });
-        BigDecimal totalAmount=cart.getItems().stream()
-                .map(CartItem::getTotalPrice)
+        BigDecimal totalAmount = cart.getItems()
+                .stream().map(CartItem ::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         cart.setTotalAmount(totalAmount);
-        carteRepository.save(cart);
+        cartRepository.save(cart);
     }
 
     @Override
     public CartItem getCartItem(Long cartId, Long productId) throws ResourceNotFoundException {
-        Cart cart = carteService.getCart(cartId);
+        Cart cart = cartService.getCart(cartId);
         return  cart.getItems()
                 .stream()
                 .filter(item -> item.getProduct().getProductId().equals(productId))
-                .findFirst().orElseThrow(() -> new RuntimeException("Item not found"));
+                .findFirst().orElseThrow(() -> new ResourceNotFoundException("Item not found"));
     }
+
 }
