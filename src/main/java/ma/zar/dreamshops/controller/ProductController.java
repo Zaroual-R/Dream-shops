@@ -8,6 +8,7 @@ import ma.zar.dreamshops.responce.ApiResponce;
 import ma.zar.dreamshops.service.product.IProductService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,8 @@ import java.util.List;
 public class ProductController {
     private final IProductService productService;
 
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/add")
     public ResponseEntity<ApiResponce> addProduct(@RequestBody ProductRequest productRequest) {
         try {
@@ -27,6 +30,7 @@ public class ProductController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponce("upload failed!",e.getMessage()));
         }
     }
+
 
     @GetMapping("/get/{id}")
     public ResponseEntity<ApiResponce> getProductById(@PathVariable Long id) {
@@ -38,7 +42,7 @@ public class ProductController {
         }
     }
 
-
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<ApiResponce> deleteProductById(@PathVariable Long id) {
         try {
@@ -49,6 +53,7 @@ public class ProductController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/update/{id}")
     public ResponseEntity<ApiResponce> updateProduct(@RequestBody ProductRequest productRequest,@PathVariable Long id) {
         try {

@@ -1,5 +1,6 @@
 package ma.zar.dreamshops.controller;
 
+import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import ma.zar.dreamshops.exceptions.ResourceNotFoundException;
 import ma.zar.dreamshops.model.Cart;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @RequiredArgsConstructor
 @RestController
@@ -27,12 +29,15 @@ public class CartItemController {
                                                      @RequestParam Long productId,
                                                      @RequestParam Integer quantity) {
         try {
-                User user=userService.getUserById(1L);
+                User user=userService.getAuthenticatedUser();
                 Cart cart= cartService.initializeNewCart(user);
 
             cartItemService.addItemToCart(cart.getId(), productId, quantity);
             return ResponseEntity.ok(new ApiResponce("Add Item Success", null));
-        } catch (Exception e) {
+        } catch (JwtException e){
+            return ResponseEntity.status(UNAUTHORIZED).body(new ApiResponce("Access non authorozed", null));
+        }
+        catch (Exception e) {
             return ResponseEntity.status(NOT_FOUND).body(new ApiResponce(e.getMessage(), null));
         }
     }

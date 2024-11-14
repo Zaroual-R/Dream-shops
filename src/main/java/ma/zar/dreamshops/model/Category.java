@@ -17,15 +17,14 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 public class Category {
-    public Category(String name) {
-        this.name = name;
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long categoryId;
     private String name;
 
+    public Category(String name) {
+        this.name = name;
+    }
     @JsonIgnore
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products;
